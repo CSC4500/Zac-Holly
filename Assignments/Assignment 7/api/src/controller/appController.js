@@ -1,4 +1,4 @@
-const { Player } = require("../model/appModel.js");
+const { Position, Player } = require("../model/appModel.js");
 
 // Removes undefined values from an object
 const removeUndefinedValues = (obj) => {
@@ -56,8 +56,6 @@ const queryParser = (query, objConstructor) => {
 
       query.between.split(":").splice().join;
 
-      console.log(between);
-
       validCol = Object.keys(validCol)[0];
       if (validCol !== undefined) {
         const [start, end] = between.split(/@(.+)/);
@@ -74,14 +72,37 @@ const queryParser = (query, objConstructor) => {
     objFilter = objConstructor(query);
   }
 
-  console.log(objBetween);
-
   return [objFilter, objPaginate, objSort, objBetween];
 };
 
 // Root Controller Function
 exports.presentHome = (req, res) => {
   res.send("<h1>REST API for TangoTwo Database</h1>");
+};
+
+// Position Controller Functions
+exports.getAllPositions = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return removeUndefinedValues(new Position(query));
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  Position.getAll(filter, paginate, sort, between, (err, positions) => {
+    if (err) res.status(500).send(err);
+    else res.send(positions);
+  });
+};
+
+exports.getOnePosition = (req, res) => {
+  Position.getOne(req.params.id, (err, position) => {
+    if (err) res.status(500).send(err);
+    else if (position.length <= 0) res.sendStatus(404);
+    else res.send(position);
+  });
 };
 
 // Player Controller Functions
@@ -95,9 +116,9 @@ exports.getAllPlayers = (req, res) => {
     return;
   }
 
-  Player.getAll(filter, paginate, sort, between, (err, users) => {
+  Player.getAll(filter, paginate, sort, between, (err, positions) => {
     if (err) res.status(500).send(err);
-    else res.send(users);
+    else res.send(positions);
   });
 };
 
