@@ -1,8 +1,15 @@
 const { knex } = require("./db.js");
 
-const Position = function (player) {
-  this.DOTA_POS_ID = player.positionId;
-  this.DOTA_POS_NAME = player.positionName;
+const Position = function (position) {
+  this.DOTA_POS_ID = position.positionId;
+  this.DOTA_POS_NAME = position.positionName;
+};
+
+const Team = function (team) {
+  this.DOTA_TEAM_ID = team.teamId;
+  this.DOTA_TEAM_NAME = team.teamName;
+  this.DOTA_TEAM_REGION = team.teamRegion;
+  this.DOTA_TEAM_EARNINGS = team.teamEarnings;
 };
 
 const Player = function (player) {
@@ -58,6 +65,46 @@ Position.getOne = (id, result) => {
     });
 };
 
+// Team Model Functions
+Team.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select()
+    .from("DOTA_TEAM")
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Teams: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+Team.getOne = (id, result) => {
+  knex
+    .select()
+    .from("DOTA_TEAM")
+    .where("DOTA_TEAM_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Team: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 // Player Model Functions
 Player.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -100,5 +147,6 @@ Player.getOne = (id, result) => {
 
 module.exports = {
   Position: Position,
+  Team: Team,
   Player: Player,
 };

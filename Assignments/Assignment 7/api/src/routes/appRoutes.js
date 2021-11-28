@@ -9,8 +9,13 @@ module.exports = (app) => {
 
   app.route("/positions/:id(\\d+)").get(ttController.getOnePosition);
 
+  // Team Endpoints
+  app.route("/teams").get(ttController.getAllTeams);
+
+  app.route("/teams/:id(\\d+)").get(ttController.getOneTeam);
+
   // Player Endpoints
   app.route("/players").get(ttController.getAllPlayers);
 
-  app.route("/player/:id(\\d+)").get(ttController.getOnePlayer);
+  app.route("/players/:id(\\d+)").get(ttController.getOnePlayer);
 };

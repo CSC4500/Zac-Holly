@@ -1,4 +1,4 @@
-const { Position, Player } = require("../model/appModel.js");
+const { Position, Team, Player } = require("../model/appModel.js");
 
 // Removes undefined values from an object
 const removeUndefinedValues = (obj) => {
@@ -102,6 +102,31 @@ exports.getOnePosition = (req, res) => {
     if (err) res.status(500).send(err);
     else if (position.length <= 0) res.sendStatus(404);
     else res.send(position);
+  });
+};
+
+// Team Controller Functions
+exports.getAllTeams = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return removeUndefinedValues(new Team(query));
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  Team.getAll(filter, paginate, sort, between, (err, teams) => {
+    if (err) res.status(500).send(err);
+    else res.send(teams);
+  });
+};
+
+exports.getOneTeam = (req, res) => {
+  Team.getOne(req.params.id, (err, team) => {
+    if (err) res.status(500).send(err);
+    else if (team.length <= 0) res.sendStatus(404);
+    else res.send(team);
   });
 };
 
