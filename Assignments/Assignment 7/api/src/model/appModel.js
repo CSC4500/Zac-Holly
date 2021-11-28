@@ -55,6 +55,12 @@ const Match = function (match) {
   this.DOTA_TEAM_ID = match.teamId;
 };
 
+const CompetingTeam = function (competingTeam) {
+  this.COMP_TEAM_ID = competingTeam.competingTeamId;
+  this.DOTA_TEAM_ID = competingTeam.teamId;
+  this.DOTA_SERIES_ID = competingTeam.seriesId;
+};
+
 // Position Model Functions
 Position.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -359,6 +365,58 @@ Match.getOne = (id, result) => {
     });
 };
 
+// Competing Team Model Functions
+CompetingTeam.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select()
+    .from("COMPETING_TEAM")
+    .join("DOTA_TEAM", {
+      "DOTA_TEAM.DOTA_TEAM_ID": "COMPETING_TEAM.DOTA_TEAM_ID",
+    })
+    .join("DOTA_SERIES", {
+      "DOTA_SERIES.DOTA_SERIES_ID": "COMPETING_TEAM.DOTA_SERIES_ID",
+    })
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Competing Team: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+CompetingTeam.getOne = (id, result) => {
+  knex
+    .select()
+    .from("COMPETING_TEAM")
+    .join("DOTA_TEAM", {
+      "DOTA_TEAM.DOTA_TEAM_ID": "COMPETING_TEAM.DOTA_TEAM_ID",
+    })
+    .join("DOTA_SERIES", {
+      "DOTA_SERIES.DOTA_SERIES_ID": "COMPETING_TEAM.DOTA_SERIES_ID",
+    })
+    .where("COMPETING_TEAM.COMP_TEAM_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Competing Teams: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 module.exports = {
   Position: Position,
   Team: Team,
@@ -367,4 +425,5 @@ module.exports = {
   TopHero: TopHero,
   Series: Series,
   Match: Match,
+  CompetingTeam: CompetingTeam,
 };

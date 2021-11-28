@@ -6,6 +6,7 @@ const {
   TopHero,
   Series,
   Match,
+  CompetingTeam,
 } = require("../model/appModel.js");
 
 // Removes undefined values from an object and prepend given table name to existing columns
@@ -274,5 +275,40 @@ exports.getOneMatch = (req, res) => {
     if (err) res.status(500).send(err);
     else if (match.length <= 0) res.sendStatus(404);
     else res.send(match);
+  });
+};
+
+// Competing Team Controller Functions
+exports.getAllCompetingTeams = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return {
+      ...reformatConstructorOutput(new CompetingTeam(query), "DOTA_TOP_HERO"),
+      ...reformatConstructorOutput(new Team(query), "DOTA_TEAM"),
+      ...reformatConstructorOutput(new Series(query), "DOTA_SERIES"),
+    };
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  CompetingTeam.getAll(
+    filter,
+    paginate,
+    sort,
+    between,
+    (err, competingTeams) => {
+      if (err) res.status(500).send(err);
+      else res.send(competingTeams);
+    }
+  );
+};
+
+exports.getOneCompetingTeam = (req, res) => {
+  CompetingTeam.getOne(req.params.id, (err, competingTeam) => {
+    if (err) res.status(500).send(err);
+    else if (competingTeam.length <= 0) res.sendStatus(404);
+    else res.send(competingTeam);
   });
 };
