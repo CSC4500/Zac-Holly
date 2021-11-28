@@ -31,6 +31,15 @@ const Hero = function (hero) {
   this.DOTA_HERO_ATTR = hero.heroAttribute;
 };
 
+const TopHero = function (topHero) {
+  this.TOP_HERO_ID = topHero.topHeroId;
+  this.TOP_HERO_MATCHES_PLAYED = topHero.topHeroMatchesPlayed;
+  this.TOP_HERO_MATCHES_WON = topHero.topHeroMatchesWon;
+  this.TOP_HERO_WIN_RATE = topHero.topHeroWinRate;
+  this.DOTA_HERO_ID = topHero.heroId;
+  this.DOTA_PLAYER_ID = topHero.playerId;
+};
+
 // Position Model Functions
 Position.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -191,9 +200,74 @@ Hero.getOne = (id, result) => {
     });
 };
 
+// Hero Model Functions
+TopHero.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select(
+      "DOTA_PLAYER_HANDLE",
+      "DOTA_PLAYER_FNAME",
+      "DOTA_PLAYER_LNAME",
+      "DOTA_HERO.*",
+      "DOTA_TOP_HERO.*"
+    )
+    .from("DOTA_TOP_HERO")
+    .join("DOTA_PLAYER", {
+      "DOTA_PLAYER.DOTA_PLAYER_ID": "DOTA_TOP_HERO.DOTA_PLAYER_ID",
+    })
+    .join("DOTA_HERO", {
+      "DOTA_HERO.DOTA_HERO_ID": "DOTA_TOP_HERO.DOTA_HERO_ID",
+    })
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Top Hero Combinations: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+TopHero.getOne = (id, result) => {
+  knex
+    .select(
+      "DOTA_PLAYER_HANDLE",
+      "DOTA_PLAYER_FNAME",
+      "DOTA_PLAYER_LNAME",
+      "DOTA_HERO.*",
+      "DOTA_TOP_HERO.*"
+    )
+    .from("DOTA_TOP_HERO")
+    .join("DOTA_PLAYER", {
+      "DOTA_PLAYER.DOTA_PLAYER_ID": "DOTA_TOP_HERO.DOTA_PLAYER_ID",
+    })
+    .join("DOTA_HERO", {
+      "DOTA_HERO.DOTA_HERO_ID": "DOTA_TOP_HERO.DOTA_HERO_ID",
+    })
+    .where("DOTA_TOP_HERO.TOP_HERO_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Top Hero Combination: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 module.exports = {
   Position: Position,
   Team: Team,
   Player: Player,
   Hero: Hero,
+  TopHero: TopHero,
 };

@@ -1,9 +1,23 @@
-const { Position, Team, Player, Hero } = require("../model/appModel.js");
+const {
+  Position,
+  Team,
+  Player,
+  Hero,
+  TopHero,
+} = require("../model/appModel.js");
 
-// Removes undefined values from an object
-const removeUndefinedValues = (obj) => {
+// Removes undefined values from an object and prepend given table name to existing columns
+const reformatConstructorOutput = (obj, tableName) => {
   for (const key of Object.keys(obj))
     if (obj[key] === undefined) delete obj[key];
+    else if (tableName) {
+      Object.defineProperty(
+        obj,
+        tableName + "." + key,
+        Object.getOwnPropertyDescriptor(obj, key)
+      );
+      delete obj[key];
+    }
   return obj;
 };
 
@@ -70,6 +84,8 @@ const queryParser = (query, objConstructor) => {
     }
 
     objFilter = objConstructor(query);
+
+    console.log(objFilter);
   }
 
   return [objFilter, objPaginate, objSort, objBetween];
@@ -83,7 +99,7 @@ exports.presentHome = (req, res) => {
 // Position Controller Functions
 exports.getAllPositions = (req, res) => {
   const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
-    return removeUndefinedValues(new Position(query));
+    return reformatConstructorOutput(new Position(query));
   });
 
   if (paginate.error) {
@@ -108,7 +124,7 @@ exports.getOnePosition = (req, res) => {
 // Team Controller Functions
 exports.getAllTeams = (req, res) => {
   const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
-    return removeUndefinedValues(new Team(query));
+    return reformatConstructorOutput(new Team(query));
   });
 
   if (paginate.error) {
@@ -133,7 +149,7 @@ exports.getOneTeam = (req, res) => {
 // Player Controller Functions
 exports.getAllPlayers = (req, res) => {
   const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
-    return removeUndefinedValues(new Player(query));
+    return reformatConstructorOutput(new Player(query));
   });
 
   if (paginate.error) {
@@ -158,7 +174,7 @@ exports.getOnePlayer = (req, res) => {
 // Hero Controller Functions
 exports.getAllHeroes = (req, res) => {
   const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
-    return removeUndefinedValues(new Hero(query));
+    return reformatConstructorOutput(new Hero(query));
   });
 
   if (paginate.error) {
@@ -177,5 +193,34 @@ exports.getOneHero = (req, res) => {
     if (err) res.status(500).send(err);
     else if (hero.length <= 0) res.sendStatus(404);
     else res.send(hero);
+  });
+};
+
+// Top Hero Combination Controller Functions
+exports.getAllTopHeroCombinations = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return {
+      ...reformatConstructorOutput(new TopHero(query), "DOTA_TOP_HERO"),
+      ...reformatConstructorOutput(new Hero(query), "DOTA_HERO"),
+      ...reformatConstructorOutput(new Player(query), "DOTA_PLAYER"),
+    };
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  TopHero.getAll(filter, paginate, sort, between, (err, topHeroes) => {
+    if (err) res.status(500).send(err);
+    else res.send(topHeroes);
+  });
+};
+
+exports.getOneTopHeroCombination = (req, res) => {
+  TopHero.getOne(req.params.id, (err, topHero) => {
+    if (err) res.status(500).send(err);
+    else if (topHero.length <= 0) res.sendStatus(404);
+    else res.send(topHero);
   });
 };

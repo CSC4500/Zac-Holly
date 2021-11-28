@@ -23,4 +23,9 @@ module.exports = (app) => {
   app.route("/heroes").get(ttController.getAllHeroes);
 
   app.route("/heroes/:id(\\d+)").get(ttController.getOneHero);
+
+  // Top Hero Combination Endpoints
+  app.route("/top-heroes").get(ttController.getAllTopHeroCombinations);
+
+  app.route("/top-heroes/:id(\\d+)").get(ttController.getOneTopHeroCombination);
 };
