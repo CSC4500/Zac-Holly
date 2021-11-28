@@ -25,6 +25,12 @@ const Player = function (player) {
   this.DOTA_TEAM_ID = player.teamId;
 };
 
+const Hero = function (hero) {
+  this.DOTA_HERO_ID = hero.heroId;
+  this.DOTA_HERO_NAME = hero.heroName;
+  this.DOTA_HERO_ATTR = hero.heroAttribute;
+};
+
 // Position Model Functions
 Position.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -145,8 +151,49 @@ Player.getOne = (id, result) => {
     });
 };
 
+// Hero Model Functions
+Hero.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select()
+    .from("DOTA_HERO")
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Heroes: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+Hero.getOne = (id, result) => {
+  knex
+    .select()
+    .from("DOTA_HERO")
+    .where("DOTA_HERO_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Hero: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 module.exports = {
   Position: Position,
   Team: Team,
   Player: Player,
+  Hero: Hero,
 };

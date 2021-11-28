@@ -1,4 +1,4 @@
-const { Position, Team, Player } = require("../model/appModel.js");
+const { Position, Team, Player, Hero } = require("../model/appModel.js");
 
 // Removes undefined values from an object
 const removeUndefinedValues = (obj) => {
@@ -141,9 +141,9 @@ exports.getAllPlayers = (req, res) => {
     return;
   }
 
-  Player.getAll(filter, paginate, sort, between, (err, positions) => {
+  Player.getAll(filter, paginate, sort, between, (err, players) => {
     if (err) res.status(500).send(err);
-    else res.send(positions);
+    else res.send(players);
   });
 };
 
@@ -152,5 +152,30 @@ exports.getOnePlayer = (req, res) => {
     if (err) res.status(500).send(err);
     else if (player.length <= 0) res.sendStatus(404);
     else res.send(player);
+  });
+};
+
+// Hero Controller Functions
+exports.getAllHeroes = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return removeUndefinedValues(new Hero(query));
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  Hero.getAll(filter, paginate, sort, between, (err, heroes) => {
+    if (err) res.status(500).send(err);
+    else res.send(heroes);
+  });
+};
+
+exports.getOneHero = (req, res) => {
+  Hero.getOne(req.params.id, (err, hero) => {
+    if (err) res.status(500).send(err);
+    else if (hero.length <= 0) res.sendStatus(404);
+    else res.send(hero);
   });
 };

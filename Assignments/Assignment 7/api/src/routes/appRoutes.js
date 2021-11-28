@@ -18,4 +18,9 @@ module.exports = (app) => {
   app.route("/players").get(ttController.getAllPlayers);
 
   app.route("/players/:id(\\d+)").get(ttController.getOnePlayer);
+
+  // Hero Endpoints
+  app.route("/heroes").get(ttController.getAllHeroes);
+
+  app.route("/heroes/:id(\\d+)").get(ttController.getOneHero);
 };
