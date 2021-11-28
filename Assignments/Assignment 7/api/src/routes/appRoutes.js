@@ -33,4 +33,9 @@ module.exports = (app) => {
   app.route("/series").get(ttController.getAllSeries);
 
   app.route("/series/:id(\\d+)").get(ttController.getOneSeries);
+
+  // Match Endpoints
+  app.route("/matches").get(ttController.getAllMatches);
+
+  app.route("/matches/:id(\\d+)").get(ttController.getOneMatch);
 };

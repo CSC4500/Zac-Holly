@@ -46,6 +46,15 @@ const Series = function (series) {
   this.DOTA_TEAM_ID = series.teamId;
 };
 
+const Match = function (match) {
+  this.DOTA_MATCH_ID = match.matchId;
+  this.DOTA_MATCH_DATE = match.matchDate;
+  this.DOTA_MATCH_TIME = match.matchTime;
+  this.DOTA_MATCH_KILLS = match.matchKills;
+  this.DOTA_SERIES_ID = match.seriesId;
+  this.DOTA_TEAM_ID = match.teamId;
+};
+
 // Position Model Functions
 Position.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -310,6 +319,46 @@ Series.getOne = (id, result) => {
     });
 };
 
+// Match Model Functions
+Match.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select()
+    .from("DOTA_MATCH")
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Matches: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+Match.getOne = (id, result) => {
+  knex
+    .select()
+    .from("DOTA_MATCH")
+    .where("DOTA_MATCH_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Match: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 module.exports = {
   Position: Position,
   Team: Team,
@@ -317,4 +366,5 @@ module.exports = {
   Hero: Hero,
   TopHero: TopHero,
   Series: Series,
+  Match: Match,
 };

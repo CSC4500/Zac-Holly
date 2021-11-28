@@ -5,6 +5,7 @@ const {
   Hero,
   TopHero,
   Series,
+  Match,
 } = require("../model/appModel.js");
 
 // Removes undefined values from an object and prepend given table name to existing columns
@@ -248,5 +249,30 @@ exports.getOneSeries = (req, res) => {
     if (err) res.status(500).send(err);
     else if (series.length <= 0) res.sendStatus(404);
     else res.send(series);
+  });
+};
+
+// Match Controller Functions
+exports.getAllMatches = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return reformatConstructorOutput(new Match(query));
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  Match.getAll(filter, paginate, sort, between, (err, matches) => {
+    if (err) res.status(500).send(err);
+    else res.send(matches);
+  });
+};
+
+exports.getOneMatch = (req, res) => {
+  Match.getOne(req.params.id, (err, match) => {
+    if (err) res.status(500).send(err);
+    else if (match.length <= 0) res.sendStatus(404);
+    else res.send(match);
   });
 };
