@@ -40,6 +40,12 @@ const TopHero = function (topHero) {
   this.DOTA_PLAYER_ID = topHero.playerId;
 };
 
+const Series = function (series) {
+  this.DOTA_SERIES_ID = series.seriesId;
+  this.DOTA_SERIES_BEST_OF = series.seriesBestOf;
+  this.DOTA_TEAM_ID = series.teamId;
+};
+
 // Position Model Functions
 Position.getAll = (filter, paginate, sort, between, result) => {
   knex
@@ -200,7 +206,7 @@ Hero.getOne = (id, result) => {
     });
 };
 
-// Hero Model Functions
+// Top Hero Combination Model Functions
 TopHero.getAll = (filter, paginate, sort, between, result) => {
   knex
     .select(
@@ -264,10 +270,51 @@ TopHero.getOne = (id, result) => {
     });
 };
 
+// Series Model Functions
+Series.getAll = (filter, paginate, sort, between, result) => {
+  knex
+    .select()
+    .from("DOTA_SERIES")
+    .timeout(2000, { cancel: true })
+    .modify((queryBuilder) => {
+      if (filter !== undefined) queryBuilder.where(filter);
+      if (paginate.limit !== undefined) queryBuilder.limit(paginate.limit);
+      if (paginate.offset !== undefined) queryBuilder.offset(paginate.offset);
+      if (sort.length > 0) queryBuilder.orderBy(sort);
+      if (between !== undefined)
+        queryBuilder.whereBetween(between.column, [between.start, between.end]);
+    })
+    .then((data) => {
+      console.log("Series: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
+Series.getOne = (id, result) => {
+  knex
+    .select()
+    .from("DOTA_SERIES")
+    .where("DOTA_SERIES_ID", id)
+    .timeout(2000, { cancel: true })
+    .then((data) => {
+      console.log("Series: ", data);
+      result(null, data);
+    })
+    .catch((err) => {
+      console.log("SQL Error: ", err);
+      result(err, null);
+    });
+};
+
 module.exports = {
   Position: Position,
   Team: Team,
   Player: Player,
   Hero: Hero,
   TopHero: TopHero,
+  Series: Series,
 };

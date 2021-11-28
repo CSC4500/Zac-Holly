@@ -4,6 +4,7 @@ const {
   Player,
   Hero,
   TopHero,
+  Series,
 } = require("../model/appModel.js");
 
 // Removes undefined values from an object and prepend given table name to existing columns
@@ -222,5 +223,30 @@ exports.getOneTopHeroCombination = (req, res) => {
     if (err) res.status(500).send(err);
     else if (topHero.length <= 0) res.sendStatus(404);
     else res.send(topHero);
+  });
+};
+
+// Series Controller Functions
+exports.getAllSeries = (req, res) => {
+  const [filter, paginate, sort, between] = queryParser(req.query, (query) => {
+    return reformatConstructorOutput(new Series(query));
+  });
+
+  if (paginate.error) {
+    res.status(406).send(paginate.errMsg);
+    return;
+  }
+
+  Series.getAll(filter, paginate, sort, between, (err, series) => {
+    if (err) res.status(500).send(err);
+    else res.send(series);
+  });
+};
+
+exports.getOneSeries = (req, res) => {
+  Series.getOne(req.params.id, (err, series) => {
+    if (err) res.status(500).send(err);
+    else if (series.length <= 0) res.sendStatus(404);
+    else res.send(series);
   });
 };
