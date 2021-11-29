@@ -1,0 +1,13 @@
+# Webstorm user-specific files
+.idea/**/workspace**.xml
+.idea/**/tasks.xml
+.idea/**/misc.xml
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Project specific exclusions
+authentication/
